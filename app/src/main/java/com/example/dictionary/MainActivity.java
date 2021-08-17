@@ -2,16 +2,23 @@ package com.example.dictionary;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +37,10 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, NoteDictionary> dictionary; //запись словаря
     private ImageView imageView;
     private final Handler handler = new Handler();
+    private DBHelper dbHelper;
+    protected static final String LOG_TAG = "----Logs----";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         getLinkElements();  //получил ссылки на элементы
-        buildDictionary();  //создал словарь
+        dictionary = new Dictionary().getDictionaryMap();
         replace();          //заполнил поля
 
         //слушаем кнопку
@@ -51,12 +62,44 @@ public class MainActivity extends AppCompatActivity {
                 v.setBackgroundColor(Color.RED);
             }
 
+            //пауза для цвета кнопки
             handler.postDelayed(() -> {
                 v.setBackgroundColor(Color.BLUE);
                 radioGroup.clearCheck();
                 replace();
-            }, 1000);
+            }, 500);
         });
+
+
+    }
+    //обработчик кнопки назад
+    @Override
+    public void onBackPressed(){
+        //super.onBackPressed();
+        openQuitDialog();
+    }
+
+    //кнопка назад или выход
+    private void openQuitDialog(){
+        AlertDialog.Builder quitDialog = new AlertDialog.Builder(
+                this);
+        quitDialog.setTitle("Выход: Вы уверены?");
+
+        quitDialog.setPositiveButton("Да", (dialog, which) -> {
+            saveProgress(); //сохраняем прогресс
+            finish();   //выход
+        });
+
+        quitDialog.setNegativeButton("Нет", (dialog, which) -> {
+            // TODO Auto-generated method stub
+        });
+
+        quitDialog.show();
+    }
+
+    private void saveProgress(){
+//        File file = new File(getBaseContext().getFilesDir(), "dic.obj");
+
     }
 
     //генератор случайных чисел для словаря
@@ -74,20 +117,9 @@ public class MainActivity extends AppCompatActivity {
         radioButton3 = new RadioButton(this);
         button = findViewById(R.id.button);
         imageView = findViewById(R.id.imageView3);
-
     }
 
-    private void buildDictionary(){
-        //создаю словарь
-        dictionary = new HashMap<>();
-
-        //добавим элементы в словарь
-        dictionary.put("груша", new NoteDictionary("pear", 1, 1));
-        dictionary.put("дыня", new NoteDictionary("melon", 1, 1));
-        dictionary.put("персик", new NoteDictionary("peach", 1, 1));
-
-    }
-
+    //перерисовка окна
     private void replace(){
         //Поместим в текстовое поле случайный элемент из словаря
         textView.setText((String) dictionary.keySet().toArray()[rnd(dictionary.size())]);
@@ -130,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
             radioGroup.addView(rb);
         }
     }
+
     //простановка звезд для слова
     private void setStar(){
         float rating = 100 * (Objects.requireNonNull(dictionary.get(textView.getText().toString())).getCorrect() / (Objects.requireNonNull(dictionary.get(textView.getText().toString())).getCorrect() + Objects.requireNonNull(dictionary.get(textView.getText().toString())).getUnCorrect()));

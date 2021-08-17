@@ -1,6 +1,9 @@
 package com.example.dictionary;
+
+import java.io.Serializable;
+
 //элемент записи для словаря
-public class NoteDictionary {
+public class NoteDictionary implements Serializable {
 
     //слово значение
     private final String value;
