@@ -2,7 +2,10 @@ package com.example.dictionary;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RadioButton;
@@ -26,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private Button button;              //кнопка следующего раунда
     private Map<String, NoteDictionary> dictionary; //запись словаря
     private ImageView imageView;
-
+    private final Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,17 +45,17 @@ public class MainActivity extends AppCompatActivity {
             RadioButton select = findViewById(radioGroup.getCheckedRadioButtonId());
             if (Objects.requireNonNull(Objects.requireNonNull(dictionary.get(textView.getText().toString())).getValue()).equals(String.valueOf(select.getText()))){
                 Objects.requireNonNull(dictionary.get(textView.getText().toString())).addOneCorrect();
-                String s = "OK" + "correct " + Objects.requireNonNull(dictionary.get(textView.getText().toString())).getCorrect();
-                Toast toastOk = Toast.makeText(this, s, Toast.LENGTH_SHORT);
-                toastOk.show();
+                v.setBackgroundColor(Color.GREEN);
             } else {
                 Objects.requireNonNull(dictionary.get(textView.getText().toString())).addOneUnCorrect();
-                String s = "NOT" + "unCorrect " + Objects.requireNonNull(dictionary.get(textView.getText().toString())).getUnCorrect();
-                Toast toastNo = Toast.makeText(this, s, Toast.LENGTH_SHORT);
-                toastNo.show();
+                v.setBackgroundColor(Color.RED);
             }
-            radioGroup.clearCheck();
-            replace();
+
+            handler.postDelayed(() -> {
+                v.setBackgroundColor(Color.BLUE);
+                radioGroup.clearCheck();
+                replace();
+            }, 1000);
         });
     }
 
@@ -61,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         Random random = new Random();
         return random.nextInt(length);
     }
+
     private void getLinkElements(){
         //Получаю ссылки на элементы
         textView = findViewById(R.id.textView);
@@ -72,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.imageView3);
 
     }
+
     private void buildDictionary(){
         //создаю словарь
         dictionary = new HashMap<>();
@@ -80,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         dictionary.put("груша", new NoteDictionary("pear", 1, 1));
         dictionary.put("дыня", new NoteDictionary("melon", 1, 1));
         dictionary.put("персик", new NoteDictionary("peach", 1, 1));
+
     }
 
     private void replace(){
@@ -124,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
             radioGroup.addView(rb);
         }
     }
+    //простановка звезд для слова
     private void setStar(){
         float rating = 100 * (Objects.requireNonNull(dictionary.get(textView.getText().toString())).getCorrect() / (Objects.requireNonNull(dictionary.get(textView.getText().toString())).getCorrect() + Objects.requireNonNull(dictionary.get(textView.getText().toString())).getUnCorrect()));
         rating = rating /20;
