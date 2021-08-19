@@ -8,8 +8,8 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="219dp"
-        android:layout_height="85dp"
+        android:layout_width="269dp"
+        android:layout_height="133dp"
         android:gravity="center_horizontal"
         android:text="Hello World!"
         android:textAlignment="center"

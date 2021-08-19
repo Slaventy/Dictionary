@@ -3,22 +3,17 @@ package com.example.dictionary;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
-import android.content.ContentValues;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,10 +29,10 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton radioButton2;   //радио переключатель 2
     private RadioButton radioButton3;   //радио переключатель 3
     private Button button;              //кнопка следующего раунда
-    private Map<String, NoteDictionary> dictionary; //запись словаря
+    private Map<String, NoteDictionary> dictionaryMap; //запись словаря
     private ImageView imageView;
     private final Handler handler = new Handler();
-    private DBHelper dbHelper;
+    Dictionary dictionary;
     protected static final String LOG_TAG = "----Logs----";
 
 
@@ -48,17 +43,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         getLinkElements();  //получил ссылки на элементы
-        dictionary = new Dictionary().getDictionaryMap();
-        replace();          //заполнил поля
+
+
+        dictionary = new Dictionary();
+        //создается из колекции
+//        dictionaryMap = dictionary.getDictionaryMap();
+
+        //создается из БД
+        SQLiteDatabase db = dictionary.createOrGetDB(this);
+        dictionaryMap = dictionary.getDictionaryMapDB(db);
+        db.close();
+
+        replace();          //заполнил поля виджета
 
         //слушаем кнопку
         button.setOnClickListener(v->{
             RadioButton select = findViewById(radioGroup.getCheckedRadioButtonId());
-            if (Objects.requireNonNull(Objects.requireNonNull(dictionary.get(textView.getText().toString())).getValue()).equals(String.valueOf(select.getText()))){
-                Objects.requireNonNull(dictionary.get(textView.getText().toString())).addOneCorrect();
+            if (Objects.requireNonNull(Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getValue()).equals(String.valueOf(select.getText()))){
+                Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).addOneCorrect();
                 v.setBackgroundColor(Color.GREEN);
             } else {
-                Objects.requireNonNull(dictionary.get(textView.getText().toString())).addOneUnCorrect();
+                Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).addOneUnCorrect();
                 v.setBackgroundColor(Color.RED);
             }
 
@@ -86,20 +91,27 @@ public class MainActivity extends AppCompatActivity {
         quitDialog.setTitle("Выход: Вы уверены?");
 
         quitDialog.setPositiveButton("Да", (dialog, which) -> {
-            saveProgress(); //сохраняем прогресс
+            try {
+                saveProgress(); //сохраняем прогресс
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             finish();   //выход
         });
 
         quitDialog.setNegativeButton("Нет", (dialog, which) -> {
-            // TODO Auto-generated method stub
         });
 
         quitDialog.show();
     }
 
-    private void saveProgress(){
-//        File file = new File(getBaseContext().getFilesDir(), "dic.obj");
-
+    private void saveProgress() throws IOException {
+        //открываем существующуу или создаем новую БД и получаем ссылку на нее
+        SQLiteDatabase db = dictionary.createOrGetDB(this);
+        //для сохранения
+            //необходимо передать новую коллекцию и ссылку на БД
+        dictionary.saveInDB(dictionaryMap,db);
+        db.close();
     }
 
     //генератор случайных чисел для словаря
@@ -122,13 +134,13 @@ public class MainActivity extends AppCompatActivity {
     //перерисовка окна
     private void replace(){
         //Поместим в текстовое поле случайный элемент из словаря
-        textView.setText((String) dictionary.keySet().toArray()[rnd(dictionary.size())]);
+        textView.setText((String) dictionaryMap.keySet().toArray()[rnd(dictionaryMap.size())]);
 
         //расположим ответы
             //копия словаря как кэш
-        Map<String, NoteDictionary> cashMap = new HashMap<>(dictionary);
+        Map<String, NoteDictionary> cashMap = new HashMap<>(dictionaryMap);
             //ставим первый радио текст
-        radioButton1.setText(Objects.requireNonNull(dictionary.get(textView.getText().toString())).getValue());
+        radioButton1.setText(Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getValue());
             //удаляем элемент с текстом из кэшСписка
         cashMap.remove(textView.getText().toString());
             //создаем список ответов
@@ -165,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
 
     //простановка звезд для слова
     private void setStar(){
-        float rating = 100 * (Objects.requireNonNull(dictionary.get(textView.getText().toString())).getCorrect() / (Objects.requireNonNull(dictionary.get(textView.getText().toString())).getCorrect() + Objects.requireNonNull(dictionary.get(textView.getText().toString())).getUnCorrect()));
+        float rating = 100 * (Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getCorrect() / (Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getCorrect() + Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getUnCorrect()));
         rating = rating /20;
         if (rating >= 0 & rating <= 1){
             imageView.setImageResource(R.drawable.one);
