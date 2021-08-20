@@ -58,24 +58,23 @@ public class MainActivity extends AppCompatActivity {
 
         //слушаем кнопку
         button.setOnClickListener(v->{
-            RadioButton select = findViewById(radioGroup.getCheckedRadioButtonId());
-            if (Objects.requireNonNull(Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getValue()).equals(String.valueOf(select.getText()))){
-                Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).addOneCorrect();
-                v.setBackgroundColor(Color.GREEN);
-            } else {
-                Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).addOneUnCorrect();
-                v.setBackgroundColor(Color.RED);
+            if (radioGroup.getCheckedRadioButtonId() != -1){
+                RadioButton select = findViewById(radioGroup.getCheckedRadioButtonId());
+                if (Objects.requireNonNull(Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getValue()).equals(String.valueOf(select.getText()))){
+                    Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).addOneCorrect();
+                    v.setBackgroundColor(Color.GREEN);
+                } else {
+                    Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).addOneUnCorrect();
+                    v.setBackgroundColor(Color.RED);
+                }
+                //пауза для цвета кнопки
+                handler.postDelayed(() -> {
+                    v.setBackgroundColor(Color.BLUE);
+                    radioGroup.clearCheck();
+                    replace();
+                }, 500);
             }
-
-            //пауза для цвета кнопки
-            handler.postDelayed(() -> {
-                v.setBackgroundColor(Color.BLUE);
-                radioGroup.clearCheck();
-                replace();
-            }, 500);
         });
-
-
     }
     //обработчик кнопки назад
     @Override
