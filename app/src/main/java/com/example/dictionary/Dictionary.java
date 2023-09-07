@@ -56,9 +56,7 @@ public class Dictionary {
                 rightAnswer = 0;
                 wrongAnswer = 0;
             }
-
             s.close();
-
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -44,12 +44,9 @@ public class MainActivity extends AppCompatActivity{
 
         getLinkElements();  //получил ссылки на элементы
 
-        //создаётся из БД
-//        SQLiteDatabase db = Dictionary.getSQLiteDBData(this);
-////        SQLiteDatabase db = new Dictionary().createOrGetDB(this);
+        //создаётся словарь из БД
         dictionary = new Dictionary();
         dictionaryMap = dictionary.getDictionaryMapDB(this);
-//        db.close();
 
         replace();          //заполнил поля виджета
 
@@ -109,7 +106,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void saveProgress() throws IOException {
-        //открываем существующуу или создаем новую БД и получаем ссылку на нее
+        //открываем существующую или создаем новую БД и получаем ссылку на нее
         SQLiteDatabase db = dictionary.createOrGetDB(this);
         //для сохранения
             //необходимо передать новую коллекцию и ссылку на БД
@@ -181,7 +178,10 @@ public class MainActivity extends AppCompatActivity{
 
     //простановка звезд для слова
     private void setStar(){
-        float rating = 100 * (Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getCorrect() / (Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getCorrect() + Objects.requireNonNull(dictionaryMap.get(textView.getText().toString())).getUnCorrect()));
+        float rating = 100 * (Objects.requireNonNull(dictionaryMap.get(textView.getText().toString()))
+                .getCorrect() / (Objects.requireNonNull(dictionaryMap.get(textView.getText().toString()))
+                .getCorrect() + Objects.requireNonNull(dictionaryMap.get(textView.getText().toString()))
+                .getUnCorrect()));
         rating = rating /20;
         if (rating >= 0 & rating <= 1){
             imageView.setImageResource(R.drawable.one);
@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity{
         }else if (rating > 3 & rating <= 4) {
             imageView.setImageResource(R.drawable.four);
         }else {
-                imageView.setImageResource(R.drawable.five);
+            imageView.setImageResource(R.drawable.five);
         }
     }
 }
