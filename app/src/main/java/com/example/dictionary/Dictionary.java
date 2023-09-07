@@ -8,61 +8,65 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+
 
 /**класс для создания колекции словаря*/
 
 public class Dictionary {
-
     private Map<String, NoteDictionary> dictionaryMap;
+    private Map<String, NoteDictionary> dictionaryMapForRet;
+    private SQLiteDatabase dictionarySQLiteDBData;
 
+    private void openBook(){
+        try {
+            InputStream s = new FileInputStream("res/Dictionary.xlsx");
+            XSSFWorkbook book = (XSSFWorkbook) WorkbookFactory.create(s);
+            XSSFSheet sheet = book.getSheet("Лист1");
+            Iterator<Row> ri = sheet.rowIterator();
+            String word = "", translate = "";
+            int rightAnswer = 0, wrongAnswer = 0;
+            while (ri.hasNext()){
+                XSSFRow row = (XSSFRow) ri.next();
+                Iterator<Cell> ci = row.cellIterator();
+                while (ci.hasNext()){
+                    XSSFCell cell = (XSSFCell) ci.next();
+                    //код
+                    switch (cell.getColumnIndex()){
+                        case 0: {translate = cell.getRichStringCellValue().getString();}
+                        case 1: {word = cell.getStringCellValue();}
+                        case 2: {rightAnswer = (int) cell.getNumericCellValue();}
+                        case 3: {wrongAnswer = (int) cell.getNumericCellValue();}
+                    }
+                }
+            dictionaryMap.put(word, new NoteDictionary(translate, rightAnswer, wrongAnswer));
+                rightAnswer = 0;
+                wrongAnswer = 0;
+            }
 
-    public Map<String, NoteDictionary> getDictionaryMap() {
+            s.close();
 
-        //добавим элементы в словарь
-        dictionaryMap.put("груша", new NoteDictionary("pear", 1, 1));
-        dictionaryMap.put("дыня", new NoteDictionary("melon", 1, 1));
-        dictionaryMap.put("персик", new NoteDictionary("peach", 1, 1));
-        dictionaryMap.put("а, и", new NoteDictionary("and", 1, 1));
-        dictionaryMap.put("должен", new NoteDictionary("must", 1, 1));
-        dictionaryMap.put("идти", new NoteDictionary("go", 1, 1));
-        dictionaryMap.put("иметь", new NoteDictionary("have", 1, 1));
-        dictionaryMap.put("картинка", new NoteDictionary("picture", 1, 1));
-        dictionaryMap.put("любить, нравиться", new NoteDictionary("like", 1, 1));
-        dictionaryMap.put("мальчик", new NoteDictionary("boy", 1, 1));
-        dictionaryMap.put("много", new NoteDictionary("many", 1, 1));
-        dictionaryMap.put("молоко", new NoteDictionary("milk", 1, 1));
-        dictionaryMap.put("но", new NoteDictionary("but", 1, 1));
-        dictionaryMap.put("сахар", new NoteDictionary("sugar", 1, 1));
-        dictionaryMap.put("сейчас", new NoteDictionary("now", 1, 1));
-        dictionaryMap.put("собака", new NoteDictionary("dog", 1, 1));
-        dictionaryMap.put("три", new NoteDictionary("three", 1, 1));
-        dictionaryMap.put("цветок", new NoteDictionary("flower", 1, 1));
-        dictionaryMap.put("ананас", new NoteDictionary("pineapple", 1, 1));
-        dictionaryMap.put("апельсин", new NoteDictionary("orange", 1, 1));
-        dictionaryMap.put("бабушка", new NoteDictionary("grandmother", 1, 1));
-        dictionaryMap.put("банан", new NoteDictionary("banana", 1, 1));
-        dictionaryMap.put("белый", new NoteDictionary("white", 1, 1));
-        dictionaryMap.put("большой", new NoteDictionary("big, large", 1, 1));
-        dictionaryMap.put("брат ", new NoteDictionary("brother", 1, 1));
-        dictionaryMap.put("в ", new NoteDictionary("in", 1, 1));
-        dictionaryMap.put("в школе", new NoteDictionary("at school", 1, 1));
-        dictionaryMap.put("город большой", new NoteDictionary("city", 1, 1));
-        dictionaryMap.put("город небольшой", new NoteDictionary("town", 1, 1));
-        dictionaryMap.put("да", new NoteDictionary("yes", 1, 1));
-        dictionaryMap.put("девушка", new NoteDictionary("girl", 1, 1));
-        dictionaryMap.put("дедушка", new NoteDictionary("grandfather", 1, 1));
-        dictionaryMap.put("дерево", new NoteDictionary("tree", 1, 1));
-        dictionaryMap.put("дети", new NoteDictionary("children", 1, 1));
-
-
-
-
-        return dictionaryMap;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+    Dictionary(){
+        openBook();
 
-
+    }
 
     public SQLiteDatabase createOrGetDB(Context context ){
         //получим список БД доступных для приложения
@@ -86,10 +90,10 @@ public class Dictionary {
         //добавить элементы
             // создаем объект для данных
         ContentValues cv = new ContentValues();
-        //берем штатную колекцию
-        Log.d(LOG_TAG, "берем штатную колекцию");
-        dictionaryMap = new HashMap<>();
-        dictionaryMap = getDictionaryMap();
+//        //берем штатную колекцию
+//        Log.d(LOG_TAG, "берем штатную колекцию");
+//        dictionaryMap = new HashMap<>();
+//        dictionaryMap = getDictionaryMap();
 
         Log.d(LOG_TAG, "взяли штатную колекцию");
             //в цикле запишем в БД поля коллекции
@@ -125,7 +129,12 @@ public class Dictionary {
             Log.d(LOG_TAG, "updated rows count = " + updCount);
         }
     }
-
+    public Map<String, NoteDictionary> getDictionaryMapDB(Context context){
+        dictionarySQLiteDBData = createOrGetDB(context);
+        dictionaryMapForRet = getDictionaryMapDB(dictionarySQLiteDBData);
+        dictionarySQLiteDBData.close();
+        return dictionaryMapForRet;
+    }
     public Map<String, NoteDictionary> getDictionaryMapDB(SQLiteDatabase db){
         //чтение из БД
                 dictionaryMap = new HashMap<>();

@@ -1,5 +1,6 @@
 package com.example.dictionary;
 
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
@@ -13,6 +14,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,8 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
-
+public class MainActivity extends AppCompatActivity{
     private TextView textView;  //текстовое поле с переводимым словом
     private RadioGroup radioGroup;  //группа радио переключателей
     private RadioButton radioButton1;   //радио переключатель 1
@@ -33,9 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageView;
     private final Handler handler = new Handler();
     Dictionary dictionary;
+
     protected static final String LOG_TAG = "----Logs----";
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,17 +44,21 @@ public class MainActivity extends AppCompatActivity {
 
         getLinkElements();  //получил ссылки на элементы
 
-
+        //создаётся из БД
+//        SQLiteDatabase db = Dictionary.getSQLiteDBData(this);
+////        SQLiteDatabase db = new Dictionary().createOrGetDB(this);
         dictionary = new Dictionary();
-        //создается из колекции
-//        dictionaryMap = dictionary.getDictionaryMap();
-
-        //создается из БД
-        SQLiteDatabase db = dictionary.createOrGetDB(this);
-        dictionaryMap = dictionary.getDictionaryMapDB(db);
-        db.close();
+        dictionaryMap = dictionary.getDictionaryMapDB(this);
+//        db.close();
 
         replace();          //заполнил поля виджета
+
+
+
+//        //слушаем кнопку аутентификации
+//        buttonAuthentication.setOnClickListener(v->{
+//            requestF(intent, 1);
+//        });
 
         //слушаем кнопку
         button.setOnClickListener(v->{
@@ -127,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
         radioButton2 = new RadioButton(this);
         radioButton3 = new RadioButton(this);
         button = findViewById(R.id.button);
+//        buttonAuthentication = findViewById(R.id.buttonAuthentication);
         imageView = findViewById(R.id.imageView3);
     }
 
